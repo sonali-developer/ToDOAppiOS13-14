@@ -72,7 +72,7 @@ class ToDoListViewController: UITableViewController {
         self.toDoItems = selectedCategory?.items.sorted(byKeyPath: "dateCreated", ascending: true)
         self.tableView.reloadData()
     }
-
+}
 //MARK: - Tableview Datasource methods
 
 extension ToDoListViewController {
