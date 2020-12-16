@@ -9,12 +9,13 @@
 
 import UIKit
 import RealmSwift
+import ChameleonFramework
 
-class ToDoListViewController: UITableViewController {
-
-    let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
+class ToDoListViewController: SwipeTableViewController {
+    
     var toDoItems : Results<Item>?
     let realm = try! Realm()
+    @IBOutlet weak var searchBar: UISearchBar!
     
     var selectedCategory: Category? {
         didSet {
@@ -24,9 +25,27 @@ class ToDoListViewController: UITableViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        print(dataFilePath)
-        self.navigationController?.navigationBar.titleTextAttributes = [NSAttributedString.Key.font: UIFont(name: "Marker Felt", size: 20)!]
         self.loadItems()
+        tableView.separatorStyle = .none
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        if let hexColor = selectedCategory?.colorHexValue {
+            guard let navBar = navigationController?.navigationBar else { fatalError("Navigation controller doesn't exist") }
+            
+            if let color = UIColor(hexString: hexColor) {
+                navBar.backgroundColor = color
+                navBar.tintColor = ContrastColorOf(color, returnFlat: true)
+                navBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor : ContrastColorOf(color, returnFlat: true), NSAttributedString.Key.font: UIFont(name: "Marker Felt", size: 40)!]
+                title = selectedCategory!.name
+                searchBar.barTintColor = color
+            } else {
+                
+            }
+           
+        }
     }
     
     @IBAction func addButtonPressed(_ sender: UIBarButtonItem) {
@@ -72,6 +91,18 @@ class ToDoListViewController: UITableViewController {
         self.toDoItems = selectedCategory?.items.sorted(byKeyPath: "dateCreated", ascending: true)
         self.tableView.reloadData()
     }
+    
+    override func updateModel(indexpath: IndexPath) {
+        if let itemToDelete = self.toDoItems?[indexpath.row] {
+            do {
+                try self.realm.write {
+                    self.realm.delete(itemToDelete)
+                }
+            } catch {
+                print("Eror updating the Item object at Swipe Action - \(error.localizedDescription)")
+            }
+        }
+    }
 }
 //MARK: - Tableview Datasource methods
 
@@ -87,22 +118,22 @@ extension ToDoListViewController {
     
     override func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
-        if let cell = tableView.dequeueReusableCell(withIdentifier: "ToDoCell") {
-            cell.textLabel?.textColor = #colorLiteral(red: 0, green: 0.5898008943, blue: 1, alpha: 1)
-            cell.textLabel?.font = UIFont(name: "Marker Felt", size: 15.0)
-            cell.textLabel?.numberOfLines = 0
-            
+        let cell = super.tableView(tableView, cellForRowAt: indexPath)
+        
             if let item = toDoItems?[indexPath.row] {
                 cell.textLabel?.text = item.title
                 cell.accessoryType = item.done == true ? .checkmark : .none
+                if let color = UIColor(hexString: selectedCategory!.colorHexValue)?.darken(byPercentage: CGFloat(indexPath.row) / CGFloat(toDoItems!.count)) {
+                    cell.backgroundColor = color
+                    cell.textLabel?.textColor = ContrastColorOf(color, returnFlat: true)
+                }
             } else {
                 cell.textLabel?.text = "No items added"
+                cell.backgroundColor = FlatBlack()
+                cell.textLabel?.textColor = FlatWhite()
             }
-            return cell
-        } else {
-            print("Problem dequeuing cell")
-            return UITableViewCell()
-        }
+        
+        return cell
         
     }
 }
