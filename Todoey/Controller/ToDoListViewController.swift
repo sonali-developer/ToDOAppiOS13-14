@@ -13,7 +13,6 @@ import RealmSwift
 class ToDoListViewController: UITableViewController {
 
     let dataFilePath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)
-    
     var toDoItems : Results<Item>?
     let realm = try! Realm()
     
@@ -70,12 +69,10 @@ class ToDoListViewController: UITableViewController {
     //MARK: - Data Manipulation Methods
     
     func loadItems() {
-        
         self.toDoItems = selectedCategory?.items.sorted(byKeyPath: "dateCreated", ascending: true)
         self.tableView.reloadData()
     }
 
-}
 //MARK: - Tableview Datasource methods
 
 extension ToDoListViewController {

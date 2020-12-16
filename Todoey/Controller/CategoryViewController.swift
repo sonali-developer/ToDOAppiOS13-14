@@ -58,6 +58,7 @@ class CategoryViewController: UITableViewController {
             print("Problem saving categories \(error)")
         }
     }
+
     
     func loadCategories() {
         categoryArray = realm.objects(Category.self)
@@ -72,7 +73,6 @@ class CategoryViewController: UITableViewController {
         let alert = UIAlertController(title: "Add New Category of Taskkkyyyysss", message: "", preferredStyle: .alert)
         
         let action = UIAlertAction(title: "Add Category", style: .default) { (action) in
-            
             let category = Category()
             category.name = alertTxtField.text!
             print("\(alertTxtField.text!)")
